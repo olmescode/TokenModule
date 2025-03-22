@@ -45,7 +45,9 @@ function NavigationBeam:mountBean()
 		local character = playerCharacter or Players.LocalPlayer.Character
 		local humanoid = character:WaitForChild("Humanoid")
 		local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-		local closestToken = self.findClosestTokenToPosition(humanoidRootPart.Position)
+
+		-- Get the closest token and its distance
+		local closestToken, distance = self.findClosestTokenToPosition(humanoidRootPart.Position)
 		
 		-- After the waiting done above we need to ensure the Navigation
 		-- Beam is still mounted before setting its state
@@ -53,9 +55,20 @@ function NavigationBeam:mountBean()
 			return
 		end
 
-		if not closestToken then
+		-- Get the maximum distance from config
+		local navigationBeamConfig = config.navigationBeam or constants.navigationBeam
+		local maxDistance = navigationBeamConfig.maxBeamDistance
+		
+		-- Check if there's no token or it's too far away
+		if not closestToken or distance > maxDistance then
+			-- Hide the beam by setting attachments to nil
 			self.playerAttachment = nil
 			self.tokenAttachment = nil
+			
+			-- If beam exists, disable it
+			if self.navigationBeam then
+				self.navigationBeam.Enabled = false
+			end
 			return
 		end
 
@@ -77,6 +90,11 @@ function NavigationBeam:mountBean()
 		self.tokenAttachment = tokenAttachment
 		self.humanoid = humanoid
 		
+		 -- Enable the beam if it was disabled
+		if self.navigationBeam then
+			self.navigationBeam.Enabled = true
+		end
+		
 		-- Render the navigation beam
 		self:renderBean()
 	end
@@ -95,7 +113,7 @@ function NavigationBeam:mountBean()
 			end
 		end
 
-		return closestToken
+		return closestToken, lowestMagnitude
 	end
 	
 	-- Event connection for player death
