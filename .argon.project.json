@@ -1,21 +1,25 @@
 {
-    "name": "TokenModule",
-    "tree": {
-      "$className": "DataModel",
-      "ReplicatedFirst": {
-        "$path": "src/ReplicatedFirst"
-      },
-      "ReplicatedStorage": {
-        "$path": "src/ReplicatedStorage"
-      },
-      "ServerScriptService": {
-        "$path": "src/ServerScriptService"
-      },
-      "ServerStorage": {
-        "$path": "src/ServerStorage"
-      }
+  "name": "TokenModule",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedFirst": {
+      "$path": "src/ReplicatedFirst"
     },
-    "syncback": {
-      "keepUnknowns": true
+    "ReplicatedStorage": {
+      "$path": "src/ReplicatedStorage"
+    },
+    "ServerScriptService": {
+      "$path": "src/ServerScriptService"
+    },
+    "ServerStorage": {
+      "$path": "src/ServerStorage"
     }
+  },
+  "syncback": {
+    "ignoreClasses": [
+      "Configuration",
+      "Model",
+      "MeshPart"
+    ]
   }
+}
