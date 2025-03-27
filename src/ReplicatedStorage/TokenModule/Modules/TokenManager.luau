@@ -6,16 +6,15 @@ local TokenModule = script:FindFirstAncestor("TokenModule")
 local t = require(TokenModule.Packages.t)
 local config = require(TokenModule.config)
 local events = require(TokenModule.events)
+local tokenStore = require(TokenModule.Modules.TokenStore)
 local animateHighlight = require(TokenModule.Components.animateHighlight)
 
-local tokensFolder = TokenModule.Tokens
 local spawnPromptTemplate = TokenModule.SpawnPrompt
 
 -- Constants
 local RESPAWN_TIME = 10
+local TOKEN_ROTATION_SPEED = 20
 local TOKEN_DESTROY_DELAY = 1
-
-local tokens = {}
 
 local TokenManager = {}
 TokenManager.__index = TokenManager
@@ -30,8 +29,7 @@ type TokenManager = {
 	_spawnLocation: Vector3,
 	_respawnable: boolean,
 	_enabled: boolean,
-	_respawnTime: number,
-	_tokenCollected: BindableEvent?
+	_tokenCollected: BindableEvent?,
 }
 
 --[[
@@ -43,9 +41,8 @@ type TokenManager = {
 		shouldRespawn: (boolean) Whether the token should respawn after being collected.
 ]]
 function TokenManager.new(tokenName, tokenSpawn, tokenRespawn)
-	if tokenName ~= nil then
-		assert(tokens[tokenName], "Bad argument #1 to TokenModule.createToken: invalid token name")
-	end
+	assert(next(tokenStore) ~= nil, "No tokens registered. Please register tokens first")
+	assert(tokenStore[tokenName], "Bad argument #1 to TokenModule.createToken: invalid token name")
 	assert(t.CFrame(tokenSpawn), "Bad argument #2 to TokenModule.createToken: expected a CFrame")
 	assert(t.boolean(tokenRespawn), "Bad argument #3 to TokenModule.createToken: expected a boolean")
 
@@ -53,31 +50,12 @@ function TokenManager.new(tokenName, tokenSpawn, tokenRespawn)
 
 	self._connections = {}
 
-	self._token = nil
-	self._tokenName = nil
+	self._token = tokenStore[tokenName]:Clone()
+	self._tokenName = tokenName
 	self._spawnLocation = tokenSpawn
 	self._respawnable = tokenRespawn
 	self._enabled = true
-	self._respawnTime = RESPAWN_TIME
 	self._tokenCollected = events.tokenCollected
-
-	local availableTokens = tokensFolder:GetChildren()
-	assert(#availableTokens > 0, "No tokens registered. Please register tokens first")
-	
-	for _, child in ipairs(availableTokens) do
-		tokens[child.Name] = child
-	end
-
-	-- Check if the tokenName is provided
-	if tokenName then
-		self._token = tokens[tokenName]:Clone()
-	else
-		-- Select a random token from the available tokens
-		local randomIndex = math.random(1, #availableTokens)
-		self._token = availableTokens[randomIndex]:Clone()
-	end
-
-	self._tokenName = self._token:GetFullName()
 
 	self:_initialize()
 
@@ -90,7 +68,9 @@ function TokenManager:_initialize()
 	self.location = self._spawnLocation
 	self.respawnable = self._respawnable
 	self.rotationEnabled = false
-	self.tokenRotationSpeed = 0
+	self.respawnTime = config.tokenRespawnTime or RESPAWN_TIME
+	self.tokenDestroyDelay = config.tokenDestroyDelay or TOKEN_DESTROY_DELAY
+	self.tokenRotationSpeed = config.tokenRotationSpeed or TOKEN_ROTATION_SPEED
 
 	-- Set up event connections
 	self.attributeConnection = self._token.AttributeChanged:Connect(function(attributeName)
@@ -98,7 +78,7 @@ function TokenManager:_initialize()
 			self._tokenCollected:Fire(self._tokenName, self.tokenCollector)
 
 			-- Clean up the current token instance
-			task.delay(TOKEN_DESTROY_DELAY, function()
+			task.delay(self.tokenDestroyDelay, function()
 				self:_destroyToken()
 				self:_respawn()
 			end)
@@ -210,7 +190,7 @@ function TokenManager:_handleTokenEffects()
 end
 
 function TokenManager:_cloneNewToken()
-	return tokens[self._tokenName]:Clone()
+	return tokenStore[self._tokenName]:Clone()
 end
 
 function TokenManager:_respawn()
@@ -222,7 +202,7 @@ function TokenManager:_respawn()
 	self._token = self:_cloneNewToken()
 
 	-- Schedule a new task for respawn
-	self.respawnTask = task.delay(self._respawnTime, function()
+	self.respawnTask = task.delay(self.respawnTime, function()
 		self.respawnTask = nil
 
 		self:_initialize()
@@ -232,10 +212,11 @@ end
 
 function TokenManager:enableRotation()
 	self.rotationEnabled = true
-	self.tokenRotationSpeed = config.tokenRotationSpeed
 
 	self.rotationHeartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
-		if not self.rotationEnabled then return end
+		if not self.rotationEnabled then
+			return
+		end
 
 		local angle = CFrame.Angles(0, math.rad(1) * deltaTime * self.tokenRotationSpeed, 0)
 		local token = self._token
