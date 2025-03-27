@@ -11,20 +11,18 @@ local function registerTokens()
 	local customTokensFolder = ReplicatedStorage:FindFirstChild("CustomTokens")
 
 	for _, tokenInstance in ipairs(customTokensFolder:GetChildren()) do
-        if tokenInstance:IsA("BasePart") or tokenInstance:IsA("Model") then
-			TokenModule.registerToken(tokenInstance)
-        end
-    end
+		TokenModule.registerToken(tokenInstance)
+	end
 end
 local function spawnToken(tokenSpawn)
 	if tokenSpawn then
-		local tokenName = nil --tokenSpawn.TokenName.Value
+		local tokenName = tokenSpawn.TokenName.Value
 		local spawnLocation = tokenSpawn.CFrame + SPAWN_OFFSET
 		local tokenRespawn = tokenSpawn.Respawn.Value
-		
+
 		local token = TokenModule.createToken(tokenName, spawnLocation, tokenRespawn)
 		token:spawnToken()
-		
+
 		-- Add the spawned token to the tokens table
 		table.insert(tokens, token)
 	else
@@ -44,7 +42,7 @@ local function cleanUpTokens()
 		token:destroy()
 		token = nil
 	end
-	
+
 	tokens = nil
 end
 
@@ -53,7 +51,7 @@ TokenModule.onTokenCollected:Connect(function(tokenName, playerCharacter)
 	print("Token collected: ", tokenName, playerCharacter)
 end)
 
--- 
+-- Register tokens
 registerTokens()
 
 -- Spawn tokens
