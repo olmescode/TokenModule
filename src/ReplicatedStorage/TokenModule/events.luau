@@ -1,6 +1,5 @@
 local events = {
-	collected = Instance.new("BindableEvent"),
-	tokenRespawn = Instance.new("BindableEvent")
+	tokenCollected = Instance.new("BindableEvent")
 }
 
 return events
