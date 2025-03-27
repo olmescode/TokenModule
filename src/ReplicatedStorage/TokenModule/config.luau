@@ -7,6 +7,12 @@ local config = {
 
 	-- The speed at which the tokens rotate. Set to 0 to prevent rotation.
 	tokenRotationSpeed = 20,
+	
+	-- The time in seconds before a token respawns after being collected
+	tokenRespawnTime = 5,
+
+	-- The time in seconds before a token is destroyed after being collected
+	tokenDestroyDelay = 1,
 
 	navigationBeam = {	
 		-- The color of the beam
