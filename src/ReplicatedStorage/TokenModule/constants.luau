@@ -14,7 +14,13 @@ local constants = {
 		segments = 10,
 		width0 = 1,
 		width1 = 1,
-		shown = true
+		shown = true,
+		curveSize0 = 0,
+        curveSize1 = 0,
+        lightEmission = 0,
+        lightInfluence = 0,
+        zOffset = 0,
+		maxBeamDistance = 50
 	}
 }
 
