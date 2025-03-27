@@ -1,18 +1,18 @@
 print("Required TokenModule")
 
-local NavigationBeam = require(script.Components.NavigationBeam)
+--local NavigationBeam = require(script.Components.NavigationBeam)
 local events = require(script.events)
 
 local TokenModule = {
 	-- Configurations
 	
 	-- Server and client APIs
-	createToken = require(script.Api.createToken), 
+	createToken = require(script.Api.createToken),
+	registerToken = require(script.Api.registerToken),
 	
 	-- Events
-	collected = events.collected.Event,
-	tokenRespawn = events.tokenRespawn.Event,
-	
+	onTokenCollected = events.tokenCollected.Event,
+
 	-- Remotes
 	remotes = script.Remotes
 }
